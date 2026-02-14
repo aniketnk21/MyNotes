@@ -1,0 +1,92 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|d:\\projects\\mobileclothstore\\cfm\\mynotes\\mynotes.desktop\\models\\notedocument.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|solutionrelative:mynotes.desktop\\models\\notedocument.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|d:\\projects\\mobileclothstore\\cfm\\mynotes\\mynotes.desktop\\models\\notecategory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|solutionrelative:mynotes.desktop\\models\\notecategory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|d:\\projects\\mobileclothstore\\cfm\\mynotes\\mynotes.desktop\\services\\thememanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|solutionrelative:mynotes.desktop\\services\\thememanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|d:\\projects\\mobileclothstore\\cfm\\mynotes\\mynotes.desktop\\services\\databaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|solutionrelative:mynotes.desktop\\services\\databaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "NoteDocument.cs",
+              "DocumentMoniker": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Models\\NoteDocument.cs",
+              "RelativeDocumentMoniker": "MyNotes.Desktop\\Models\\NoteDocument.cs",
+              "ToolTip": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Models\\NoteDocument.cs",
+              "RelativeToolTip": "MyNotes.Desktop\\Models\\NoteDocument.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAA3AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-14T04:33:55.347Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "NoteCategory.cs",
+              "DocumentMoniker": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Models\\NoteCategory.cs",
+              "RelativeDocumentMoniker": "MyNotes.Desktop\\Models\\NoteCategory.cs",
+              "ToolTip": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Models\\NoteCategory.cs",
+              "RelativeToolTip": "MyNotes.Desktop\\Models\\NoteCategory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-14T04:33:53.049Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ThemeManager.cs",
+              "DocumentMoniker": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Services\\ThemeManager.cs",
+              "RelativeDocumentMoniker": "MyNotes.Desktop\\Services\\ThemeManager.cs",
+              "ToolTip": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Services\\ThemeManager.cs",
+              "RelativeToolTip": "MyNotes.Desktop\\Services\\ThemeManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-14T04:33:49.664Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "DatabaseService.cs",
+              "DocumentMoniker": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Services\\DatabaseService.cs",
+              "RelativeDocumentMoniker": "MyNotes.Desktop\\Services\\DatabaseService.cs",
+              "ToolTip": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Services\\DatabaseService.cs",
+              "RelativeToolTip": "MyNotes.Desktop\\Services\\DatabaseService.cs",
+              "ViewState": "AgIAALQAAAAAAAAAAAAiwFkAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-14T04:33:27.48Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

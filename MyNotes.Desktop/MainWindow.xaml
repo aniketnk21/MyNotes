@@ -1,0 +1,291 @@
+﻿<Window x:Class="MyNotes.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
+        xmlns:local="clr-namespace:MyNotes.Desktop"
+        mc:Ignorable="d"
+        Title="MyNotes" Height="720" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="#1E1E1E" Foreground="#D4D4D4"
+        Icon="icons/app.ico">
+
+    <Window.InputBindings>
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="{x:Static local:MainWindow.NewNoteCommand}" />
+        <KeyBinding Key="S" Modifiers="Ctrl" Command="{x:Static local:MainWindow.SaveCommand}" />
+        <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.SaveAllCommand}" />
+        <KeyBinding Key="F" Modifiers="Ctrl" Command="{x:Static local:MainWindow.FindReplaceCommand}" />
+        <KeyBinding Key="H" Modifiers="Ctrl" Command="{x:Static local:MainWindow.FindReplaceCommand}" />
+        <KeyBinding Key="W" Modifiers="Ctrl" Command="{x:Static local:MainWindow.CloseTabCommand}" />
+        <KeyBinding Key="Z" Modifiers="Ctrl" Command="ApplicationCommands.Undo" />
+        <KeyBinding Key="Y" Modifiers="Ctrl" Command="ApplicationCommands.Redo" />
+    </Window.InputBindings>
+
+    <DockPanel LastChildFill="True">
+        <!-- ── Menu Bar ──────────────────────────────── -->
+        <Menu DockPanel.Dock="Top" Padding="4,4">
+            <MenuItem Header="_File" Style="{DynamicResource TopLevelMenuItem}">
+                <MenuItem Header="_New Note" InputGestureText="Ctrl+N" Click="NewNote_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📄" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="New _Category" Click="NewCategory_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📁" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="_Save" InputGestureText="Ctrl+S" Click="Save_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💾" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Save _All" InputGestureText="Ctrl+Shift+S" Click="SaveAll_Click"/>
+                <Separator/>
+                <MenuItem Header="E_xport to File..." Click="ExportToFile_Click"/>
+                <MenuItem Header="_Import from File..." Click="ImportFromFile_Click"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Click="Exit_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Edit" Style="{DynamicResource TopLevelMenuItem}">
+                <MenuItem Header="_Undo" InputGestureText="Ctrl+Z" Click="Undo_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="↩" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Redo" InputGestureText="Ctrl+Y" Click="Redo_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="↪" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Cu_t" InputGestureText="Ctrl+X" Click="Cut_Click"/>
+                <MenuItem Header="_Copy" InputGestureText="Ctrl+C" Click="Copy_Click"/>
+                <MenuItem Header="_Paste" InputGestureText="Ctrl+V" Click="Paste_Click"/>
+                <MenuItem Header="Select _All" InputGestureText="Ctrl+A" Click="SelectAll_Click"/>
+                <Separator/>
+                <MenuItem Header="_Find and Replace" InputGestureText="Ctrl+F" Click="FindReplace_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🔍" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_View" Style="{DynamicResource TopLevelMenuItem}">
+                <MenuItem x:Name="MenuTogglePanel" Header="Toggle _Left Panel" IsCheckable="True" IsChecked="True" Click="ToggleLeftPanel_Click"/>
+                <MenuItem x:Name="MenuWordWrap" Header="_Word Wrap" IsCheckable="True" IsChecked="False" Click="ToggleWordWrap_Click"/>
+                <MenuItem x:Name="MenuLineNumbers" Header="Show _Line Numbers" IsCheckable="True" IsChecked="True" Click="ToggleLineNumbers_Click"/>
+                <Separator/>
+                <MenuItem Header="_Toggle Dark/Light Mode" Click="ToggleTheme_Click"/>
+                <Separator/>
+                <MenuItem Header="Syntax _Language">
+                    <MenuItem Header="Plain Text" Click="SetLanguage_Click" Tag="Plain"/>
+                    <Separator/>
+                    <MenuItem Header="C#" Click="SetLanguage_Click" Tag="C#"/>
+                    <MenuItem Header="XML / XAML" Click="SetLanguage_Click" Tag="XML"/>
+                    <MenuItem Header="HTML" Click="SetLanguage_Click" Tag="HTML"/>
+                    <MenuItem Header="JavaScript" Click="SetLanguage_Click" Tag="JavaScript"/>
+                    <MenuItem Header="CSS" Click="SetLanguage_Click" Tag="CSS"/>
+                    <MenuItem Header="JSON" Click="SetLanguage_Click" Tag="JSON"/>
+                    <MenuItem Header="SQL" Click="SetLanguage_Click" Tag="SQL"/>
+                    <MenuItem Header="Python" Click="SetLanguage_Click" Tag="Python"/>
+                    <MenuItem Header="Java" Click="SetLanguage_Click" Tag="Java"/>
+                    <MenuItem Header="C/C++" Click="SetLanguage_Click" Tag="C++"/>
+                    <MenuItem Header="PHP" Click="SetLanguage_Click" Tag="PHP"/>
+                    <MenuItem Header="Markdown" Click="SetLanguage_Click" Tag="MarkDown"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Zoom _In" InputGestureText="Ctrl++" Click="ZoomIn_Click"/>
+                <MenuItem Header="Zoom _Out" InputGestureText="Ctrl+-" Click="ZoomOut_Click"/>
+                <MenuItem Header="Reset _Zoom" Click="ZoomReset_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Help" Style="{DynamicResource TopLevelMenuItem}">
+                <MenuItem Header="_About MyNotes" Click="About_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- ── Toolbar ───────────────────────────────── -->
+        <ToolBarTray DockPanel.Dock="Top" Background="{DynamicResource ToolbarBgBrush}">
+            <ToolBar Band="0" BandIndex="0" Background="{DynamicResource ToolbarBgBrush}">
+                <Button Style="{DynamicResource ToolbarButton}" ToolTip="New Note (Ctrl+N)" Click="NewNote_Click">
+                    <TextBlock Text="📄" FontSize="16"/>
+                </Button>
+                <Button Style="{DynamicResource ToolbarButton}" ToolTip="Save (Ctrl+S)" Click="Save_Click">
+                    <TextBlock Text="💾" FontSize="16"/>
+                </Button>
+                <Separator/>
+                <Button Style="{DynamicResource ToolbarButton}" ToolTip="Undo (Ctrl+Z)" Click="Undo_Click">
+                    <TextBlock Text="↩" FontSize="16"/>
+                </Button>
+                <Button Style="{DynamicResource ToolbarButton}" ToolTip="Redo (Ctrl+Y)" Click="Redo_Click">
+                    <TextBlock Text="↪" FontSize="16"/>
+                </Button>
+                <Separator/>
+                <Button Style="{DynamicResource ToolbarButton}" ToolTip="Find &amp; Replace (Ctrl+F)" Click="FindReplace_Click">
+                    <TextBlock Text="🔍" FontSize="16"/>
+                </Button>
+                <Separator/>
+                <Button Style="{DynamicResource ToolbarButton}" ToolTip="Toggle Theme" Click="ToggleTheme_Click">
+                    <TextBlock x:Name="ThemeToggleIcon" Text="🌙" FontSize="16"/>
+                </Button>
+                <Separator/>
+                <TextBlock Text="  Language: " VerticalAlignment="Center" Foreground="{DynamicResource ForegroundBrush}"/>
+                <ComboBox x:Name="LanguageCombo" Width="120" SelectionChanged="LanguageCombo_SelectionChanged"
+                          VerticalAlignment="Center"
+                          Background="{DynamicResource SecondaryBgBrush}"
+                          Foreground="{DynamicResource ForegroundBrush}"
+                          BorderBrush="{DynamicResource BorderBrush}">
+                    <ComboBoxItem Content="Plain Text" Tag="Plain" IsSelected="True"/>
+                    <ComboBoxItem Content="C#" Tag="C#"/>
+                    <ComboBoxItem Content="XML / XAML" Tag="XML"/>
+                    <ComboBoxItem Content="HTML" Tag="HTML"/>
+                    <ComboBoxItem Content="JavaScript" Tag="JavaScript"/>
+                    <ComboBoxItem Content="CSS" Tag="CSS"/>
+                    <ComboBoxItem Content="JSON" Tag="JSON"/>
+                    <ComboBoxItem Content="SQL" Tag="SQL"/>
+                    <ComboBoxItem Content="Python" Tag="Python"/>
+                    <ComboBoxItem Content="Java" Tag="Java"/>
+                    <ComboBoxItem Content="C/C++" Tag="C++"/>
+                    <ComboBoxItem Content="PHP" Tag="PHP"/>
+                    <ComboBoxItem Content="Markdown" Tag="MarkDown"/>
+                </ComboBox>
+                <Separator/>
+                <TextBlock Text="  Font Size: " VerticalAlignment="Center" Foreground="{DynamicResource ForegroundBrush}"/>
+                <ComboBox x:Name="FontSizeCombo" Width="60" SelectionChanged="FontSizeCombo_SelectionChanged"
+                          VerticalAlignment="Center" IsEditable="True"
+                          Background="{DynamicResource SecondaryBgBrush}"
+                          Foreground="{DynamicResource ForegroundBrush}"
+                          BorderBrush="{DynamicResource BorderBrush}">
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="12"/>
+                    <ComboBoxItem Content="14" IsSelected="True"/>
+                    <ComboBoxItem Content="16"/>
+                    <ComboBoxItem Content="18"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="24"/>
+                    <ComboBoxItem Content="28"/>
+                    <ComboBoxItem Content="32"/>
+                </ComboBox>
+            </ToolBar>
+            <ToolBar Band="0" BandIndex="1" Background="{DynamicResource ToolbarBgBrush}" HorizontalAlignment="Right">
+                <TextBlock Text="  Search: " VerticalAlignment="Center" Foreground="{DynamicResource ForegroundBrush}"/>
+                <TextBox x:Name="GlobalSearchBox" Width="200" VerticalAlignment="Center"
+                         Background="{DynamicResource SecondaryBgBrush}"
+                         Foreground="{DynamicResource ForegroundBrush}"
+                         BorderBrush="{DynamicResource BorderBrush}"
+                         TextChanged="GlobalSearchBox_TextChanged"
+                         Tag="Search all notes..."/>
+            </ToolBar>
+        </ToolBarTray>
+
+        <!-- ── Status Bar ────────────────────────────── -->
+        <StatusBar DockPanel.Dock="Bottom" Padding="4,2">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusLineCol" Text="Ln 1, Col 1"/>
+            </StatusBarItem>
+            <Separator Background="#FFFFFF" Opacity="0.3"/>
+            <StatusBarItem>
+                <TextBlock x:Name="StatusWordCount" Text="Words: 0"/>
+            </StatusBarItem>
+            <Separator Background="#FFFFFF" Opacity="0.3"/>
+            <StatusBarItem>
+                <TextBlock x:Name="StatusLanguage" Text="Plain Text"/>
+            </StatusBarItem>
+            <Separator Background="#FFFFFF" Opacity="0.3"/>
+            <StatusBarItem>
+                <TextBlock x:Name="StatusInfo" Text="Ready"/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <!-- ── Main Content ──────────────────────────── -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="LeftPanelColumn" Width="260" MinWidth="150"/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel: Category & Document Tree -->
+            <DockPanel Grid.Column="0" Background="{DynamicResource SecondaryBgBrush}">
+                <!-- Panel Header -->
+                <Border DockPanel.Dock="Top" Background="{DynamicResource TertiaryBgBrush}" Padding="10,8">
+                    <DockPanel>
+                        <TextBlock Text="EXPLORER" FontWeight="SemiBold" FontSize="11" 
+                                   Foreground="{DynamicResource ForegroundDimBrush}"
+                                   VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="+" ToolTip="New Category" Click="NewCategory_Click"
+                                    Padding="5,1" FontSize="16" FontWeight="Bold" Margin="0,0,4,0"/>
+                            <Button Content="📄" ToolTip="New Note" Click="NewNote_Click"
+                                    Padding="4,1" FontSize="14"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
+                <!-- Search Box -->
+                <Border DockPanel.Dock="Top" Padding="8,6" Background="{DynamicResource SecondaryBgBrush}">
+                    <TextBox x:Name="SearchBox" Padding="6,4"
+                             Tag="Search notes..."
+                             TextChanged="SearchBox_TextChanged"
+                             Background="{DynamicResource TertiaryBgBrush}" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}"/>
+                </Border>
+
+                <!-- Tree View -->
+                <TreeView x:Name="NoteTree" Padding="4"
+                          SelectedItemChanged="NoteTree_SelectedItemChanged"
+                          MouseDoubleClick="NoteTree_MouseDoubleClick">
+                    <TreeView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="New Category" Click="NewCategory_Click"/>
+                            <MenuItem Header="New Note" Click="NewNote_Click"/>
+                        </ContextMenu>
+                    </TreeView.ContextMenu>
+                </TreeView>
+            </DockPanel>
+
+            <!-- Grid Splitter -->
+            <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" Background="#3F3F46" />
+
+            <!-- Right Panel: Tabbed Editor -->
+            <DockPanel Grid.Column="2">
+                <!-- Tab Control -->
+                <TabControl x:Name="EditorTabs" DockPanel.Dock="Top"
+                            SelectionChanged="EditorTabs_SelectionChanged">
+                    <!-- Tabs are added programmatically -->
+                </TabControl>
+
+                <!-- Welcome screen shown when no tabs open -->
+                <Border x:Name="WelcomePanel" Background="{DynamicResource PrimaryBgBrush}" Visibility="Visible">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="MyNotes" FontSize="42" FontWeight="Light" 
+                                   Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center"
+                                   Margin="0,0,0,10"/>
+                        <TextBlock Text="A Modern Note-Taking Editor" FontSize="16" 
+                                   Foreground="{DynamicResource ForegroundDimBrush}" HorizontalAlignment="Center"
+                                   Margin="0,0,0,30"/>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Foreground="{DynamicResource ForegroundDimBrush}" HorizontalAlignment="Center" Margin="0,4">
+                                <Run Text="Ctrl+N" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}"/>
+                                <Run Text="  New Note"/>
+                            </TextBlock>
+                            <TextBlock Foreground="{DynamicResource ForegroundDimBrush}" HorizontalAlignment="Center" Margin="0,4">
+                                <Run Text="Ctrl+S" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}"/>
+                                <Run Text="  Save"/>
+                            </TextBlock>
+                            <TextBlock Foreground="{DynamicResource ForegroundDimBrush}" HorizontalAlignment="Center" Margin="0,4">
+                                <Run Text="Ctrl+F" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}"/>
+                                <Run Text="  Find &amp; Replace"/>
+                            </TextBlock>
+                            <TextBlock Foreground="{DynamicResource ForegroundDimBrush}" HorizontalAlignment="Center" Margin="0,4">
+                                <Run Text="Ctrl+W" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}"/>
+                                <Run Text="  Close Tab"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</Window>
