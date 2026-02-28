@@ -20,13 +20,16 @@ public partial class MainWindow : Window
     public static readonly RoutedCommand CloseTabCommand = new();
 
     private readonly DatabaseService _db = DatabaseService.Instance;
-    private readonly Dictionary<long, TabItem> _openTabs = new();
     private readonly DispatcherTimer _autoSaveTimer;
     private double _fontSize = 14;
     private bool _showLineNumbers = true;
     private bool _wordWrap = false;
     private FindReplaceDialog? _findReplaceDialog;
     private string _globalSearchText = "";
+
+    // Single-document editor state
+    private TextEditor? _singleEditor;
+    private NoteDocument? _currentDoc;
 
     public MainWindow()
     {
@@ -45,7 +48,7 @@ public partial class MainWindow : Window
         _autoSaveTimer.Start();
 
         LoadTree();
-        UpdateWelcomeVisibility();
+        UpdateEditorVisibility(false);
     }
 
     // ═══════════════════════════════════════════════════
@@ -178,14 +181,27 @@ public partial class MainWindow : Window
 
     private void NoteTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
-        // Selection change handled - no action needed unless double click
+        // Handled in MouseLeftButtonUp to avoid firing on keyboard navigation conflicts
     }
 
-    private void NoteTree_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    private void NoteTree_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (NoteTree.SelectedItem is TreeViewItem { Tag: NoteDocument doc })
+        if (NoteTree.SelectedItem is TreeViewItem tvi)
         {
-            OpenDocumentTab(doc);
+            if (tvi.Tag is NoteDocument doc)
+            {
+                OpenDocument(doc);
+            }
+            else if (tvi.Tag is NoteCategory cat)
+            {
+                // On category single-click: open first note in category if available
+                var docs = _db.GetDocumentsByCategory(cat.Id);
+                if (docs.Count > 0)
+                    OpenDocument(docs[0]);
+                else
+                    // No notes yet - show the welcome panel with nothing loaded
+                    UpdateEditorVisibility(false);
+            }
         }
     }
 
@@ -224,84 +240,67 @@ public partial class MainWindow : Window
 
     private void ClearHighlights()
     {
-        foreach (TabItem tab in EditorTabs.Items)
+        if (_singleEditor != null)
         {
-            if (tab.Content is TextEditor editor)
+            var renderer = _singleEditor.TextArea.TextView.BackgroundRenderers.OfType<SearchHighlightRenderer>().FirstOrDefault();
+            if (renderer != null)
             {
-                var renderer = editor.TextArea.TextView.BackgroundRenderers.OfType<SearchHighlightRenderer>().FirstOrDefault();
-                if (renderer != null)
-                {
-                    editor.TextArea.TextView.BackgroundRenderers.Remove(renderer);
-                    editor.TextArea.TextView.InvalidateLayer(ICSharpCode.AvalonEdit.Rendering.KnownLayer.Background);
-                }
+                _singleEditor.TextArea.TextView.BackgroundRenderers.Remove(renderer);
+                _singleEditor.TextArea.TextView.InvalidateLayer(ICSharpCode.AvalonEdit.Rendering.KnownLayer.Background);
             }
         }
     }
 
     // ═══════════════════════════════════════════════════
-    //  TAB MANAGEMENT
+    //  SINGLE-DOCUMENT EDITOR MANAGEMENT
     // ═══════════════════════════════════════════════════
 
-    private void OpenDocumentTab(NoteDocument doc)
+    private void OpenDocument(NoteDocument doc)
     {
-        // If already open, switch to it
-        if (_openTabs.TryGetValue(doc.Id, out var existingTab))
-        {
-            EditorTabs.SelectedItem = existingTab;
-            return;
-        }
+        // Save the currently open document before switching
+        SaveCurrentDocument();
 
         // Reload from DB to get latest content
         var freshDoc = _db.GetDocument(doc.Id);
         if (freshDoc == null) return;
 
-        var editor = CreateEditor();
-        editor.Text = freshDoc.Content;
-        editor.Tag = freshDoc;
+        _currentDoc = freshDoc;
+
+        // Create editor if it doesn't exist yet, otherwise reuse it
+        if (_singleEditor == null)
+        {
+            _singleEditor = CreateEditor();
+            _singleEditor.TextArea.Caret.PositionChanged += (s, e) =>
+            {
+                if (_singleEditor != null) UpdateStatusBar(_singleEditor);
+            };
+            EditorHost.Content = _singleEditor;
+        }
+
+        _singleEditor.Text = freshDoc.Content;
+        _singleEditor.Tag = freshDoc;
 
         // Apply syntax highlighting
-        ApplySyntaxHighlighting(editor, freshDoc.SyntaxLanguage);
+        ApplySyntaxHighlighting(_singleEditor, freshDoc.SyntaxLanguage);
 
-        // Track caret position
-        editor.TextArea.Caret.PositionChanged += (s, e) => UpdateStatusBar(editor);
+        // Update title bar
+        EditorTitleText.Text = freshDoc.Title;
+        EditorTitleBar.Visibility = Visibility.Visible;
 
-        // Tab header with close button
-        var headerPanel = new StackPanel { Orientation = Orientation.Horizontal };
-        var headerText = new TextBlock
-        {
-            Text = freshDoc.Title,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 8, 0)
-        };
-        headerPanel.Children.Add(headerText);
-        var closeBtn = new Button
-        {
-            Content = "✕",
-            FontSize = 10,
-            Padding = new Thickness(4, 1, 4, 1),
-            Background = System.Windows.Media.Brushes.Transparent,
-            BorderThickness = new Thickness(0),
-            Foreground = System.Windows.Media.Brushes.Gray,
-            Cursor = Cursors.Hand,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-
-        var tab = new TabItem
-        {
-            Header = headerPanel,
-            Content = editor,
-            Tag = freshDoc
-        };
-        closeBtn.Click += (s, e) => CloseTab(tab);
-        headerPanel.Children.Add(closeBtn);
-
-        EditorTabs.Items.Add(tab);
-        EditorTabs.SelectedItem = tab;
-        _openTabs[freshDoc.Id] = tab;
-
-        UpdateWelcomeVisibility();
+        UpdateEditorVisibility(true);
         UpdateLanguageCombo(freshDoc.SyntaxLanguage);
-        UpdateStatusBar(editor);
+        UpdateStatusBar(_singleEditor);
+        HighlightSearchInActiveEditor();
+    }
+
+    private void SaveCurrentDocument()
+    {
+        if (_singleEditor != null && _currentDoc != null)
+        {
+            _currentDoc.Content = _singleEditor.Text;
+            _currentDoc.UpdatedAt = DateTime.UtcNow;
+            _db.SaveDocument(_currentDoc);
+        }
     }
 
     private TextEditor CreateEditor()
@@ -334,41 +333,21 @@ public partial class MainWindow : Window
         return editor;
     }
 
-    private void CloseTab(TabItem tab)
-    {
-        if (tab.Tag is NoteDocument doc)
-        {
-            // Save before closing
-            SaveDocumentFromTab(tab);
-            _openTabs.Remove(doc.Id);
-        }
-        EditorTabs.Items.Remove(tab);
-        UpdateWelcomeVisibility();
-    }
-
     private void CloseCurrentTab()
     {
-        if (EditorTabs.SelectedItem is TabItem tab)
-        {
-            CloseTab(tab);
-        }
+        // Save and close the current document
+        SaveCurrentDocument();
+        _currentDoc = null;
+        if (_singleEditor != null)
+            _singleEditor.Text = string.Empty;
+        UpdateEditorVisibility(false);
+        EditorTitleBar.Visibility = Visibility.Collapsed;
     }
 
-    private void UpdateWelcomeVisibility()
+    private void UpdateEditorVisibility(bool docOpen)
     {
-        WelcomePanel.Visibility = EditorTabs.Items.Count == 0
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-    }
-
-    private void EditorTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (EditorTabs.SelectedItem is TabItem { Content: TextEditor editor, Tag: NoteDocument doc })
-        {
-            UpdateStatusBar(editor);
-            UpdateLanguageCombo(doc.SyntaxLanguage);
-            HighlightSearchInActiveEditor();
-        }
+        WelcomePanel.Visibility = docOpen ? Visibility.Collapsed : Visibility.Visible;
+        EditorHost.Visibility = docOpen ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // ═══════════════════════════════════════════════════
@@ -425,10 +404,10 @@ public partial class MainWindow : Window
     {
         if (!IsLoaded || _updatingLanguageCombo) return;
         if (LanguageCombo.SelectedItem is ComboBoxItem { Tag: string lang } &&
-            EditorTabs.SelectedItem is TabItem { Content: TextEditor editor, Tag: NoteDocument doc })
+            _singleEditor != null && _currentDoc != null)
         {
-            doc.SyntaxLanguage = lang;
-            ApplySyntaxHighlighting(editor, lang);
+            _currentDoc.SyntaxLanguage = lang;
+            ApplySyntaxHighlighting(_singleEditor, lang);
             StatusLanguage.Text = lang == "Plain" ? "Plain Text" : lang;
         }
     }
@@ -457,25 +436,12 @@ public partial class MainWindow : Window
     //  SAVE / LOAD
     // ═══════════════════════════════════════════════════
 
-    private void SaveDocumentFromTab(TabItem tab)
-    {
-        if (tab.Content is TextEditor editor && tab.Tag is NoteDocument doc)
-        {
-            doc.Content = editor.Text;
-            doc.UpdatedAt = DateTime.UtcNow;
-            _db.SaveDocument(doc);
-        }
-    }
-
     private void SaveAllDocuments(bool silent = false)
     {
-        foreach (TabItem tab in EditorTabs.Items)
-        {
-            SaveDocumentFromTab(tab);
-        }
+        SaveCurrentDocument();
         if (!silent)
         {
-            StatusInfo.Text = $"All documents saved at {DateTime.Now:HH:mm:ss}";
+            StatusInfo.Text = $"Saved at {DateTime.Now:HH:mm:ss}";
         }
     }
 
@@ -519,7 +485,7 @@ public partial class MainWindow : Window
         LoadTree();
 
         var newDoc = _db.GetDocument(id);
-        if (newDoc != null) OpenDocumentTab(newDoc);
+        if (newDoc != null) OpenDocument(newDoc);
         StatusInfo.Text = $"Created: {title}";
     }
 
@@ -556,19 +522,16 @@ public partial class MainWindow : Window
             "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         if (result == MessageBoxResult.Yes)
         {
-            // Close any open tabs for documents in this category
-            var docsToClose = _openTabs.Keys.ToList();
-            foreach (var docId in docsToClose)
+            // If the currently open doc belongs to this category, clear editor
+            if (_currentDoc?.CategoryId == cat.Id)
             {
-                if (_openTabs.TryGetValue(docId, out var tab) && tab.Tag is NoteDocument d && d.CategoryId == cat.Id)
-                {
-                    EditorTabs.Items.Remove(tab);
-                    _openTabs.Remove(docId);
-                }
+                _currentDoc = null;
+                if (_singleEditor != null) _singleEditor.Text = string.Empty;
+                UpdateEditorVisibility(false);
+                EditorTitleBar.Visibility = Visibility.Collapsed;
             }
             _db.DeleteCategory(cat.Id);
             LoadTree();
-            UpdateWelcomeVisibility();
             StatusInfo.Text = $"Deleted category: {cat.Name}";
         }
     }
@@ -582,13 +545,11 @@ public partial class MainWindow : Window
             _db.SaveDocument(doc);
             LoadTree();
 
-            // Update tab header if open
-            if (_openTabs.TryGetValue(doc.Id, out var tab))
+            // Update title bar if this is the currently open doc
+            if (_currentDoc?.Id == doc.Id)
             {
-                if (tab.Header is StackPanel panel && panel.Children[0] is TextBlock tb)
-                {
-                    tb.Text = newTitle;
-                }
+                _currentDoc.Title = newTitle;
+                EditorTitleText.Text = newTitle;
             }
         }
     }
@@ -600,25 +561,24 @@ public partial class MainWindow : Window
             "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         if (result == MessageBoxResult.Yes)
         {
-            if (_openTabs.TryGetValue(doc.Id, out var tab))
+            // If the deleted note is currently open, clear the editor
+            if (_currentDoc?.Id == doc.Id)
             {
-                EditorTabs.Items.Remove(tab);
-                _openTabs.Remove(doc.Id);
+                _currentDoc = null;
+                if (_singleEditor != null) _singleEditor.Text = string.Empty;
+                UpdateEditorVisibility(false);
+                EditorTitleBar.Visibility = Visibility.Collapsed;
             }
             _db.DeleteDocument(doc.Id);
             LoadTree();
-            UpdateWelcomeVisibility();
             StatusInfo.Text = $"Deleted: {doc.Title}";
         }
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
-        if (EditorTabs.SelectedItem is TabItem tab)
-        {
-            SaveDocumentFromTab(tab);
-            StatusInfo.Text = $"Saved at {DateTime.Now:HH:mm:ss}";
-        }
+        SaveCurrentDocument();
+        StatusInfo.Text = $"Saved at {DateTime.Now:HH:mm:ss}";
     }
 
     private void SaveAll_Click(object sender, RoutedEventArgs e)
@@ -628,17 +588,17 @@ public partial class MainWindow : Window
 
     private void ExportToFile_Click(object sender, RoutedEventArgs e)
     {
-        if (EditorTabs.SelectedItem is not TabItem { Content: TextEditor editor, Tag: NoteDocument doc }) return;
+        if (_singleEditor == null || _currentDoc == null) return;
 
         var dialog = new SaveFileDialog
         {
-            FileName = doc.Title,
+            FileName = _currentDoc.Title,
             Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
             DefaultExt = ".txt"
         };
         if (dialog.ShowDialog() == true)
         {
-            System.IO.File.WriteAllText(dialog.FileName, editor.Text);
+            System.IO.File.WriteAllText(dialog.FileName, _singleEditor.Text);
             StatusInfo.Text = $"Exported to: {dialog.FileName}";
         }
     }
@@ -686,7 +646,7 @@ public partial class MainWindow : Window
         var id = _db.AddDocument(categoryId, title, content, lang);
         LoadTree();
         var newDoc = _db.GetDocument(id);
-        if (newDoc != null) OpenDocumentTab(newDoc);
+        if (newDoc != null) OpenDocument(newDoc);
         StatusInfo.Text = $"Imported: {title}";
     }
 
@@ -700,7 +660,7 @@ public partial class MainWindow : Window
 
     private TextEditor? GetActiveEditor()
     {
-        return EditorTabs.SelectedItem is TabItem { Content: TextEditor editor } ? editor : null;
+        return _singleEditor;
     }
 
     private void Undo_Click(object sender, RoutedEventArgs e) => GetActiveEditor()?.Undo();
@@ -744,34 +704,25 @@ public partial class MainWindow : Window
     private void ToggleWordWrap_Click(object sender, RoutedEventArgs e)
     {
         _wordWrap = MenuWordWrap.IsChecked;
-        foreach (TabItem tab in EditorTabs.Items)
-        {
-            if (tab.Content is TextEditor editor)
-                editor.WordWrap = _wordWrap;
-        }
+        if (_singleEditor != null)
+            _singleEditor.WordWrap = _wordWrap;
     }
 
     private void ToggleLineNumbers_Click(object sender, RoutedEventArgs e)
     {
         _showLineNumbers = MenuLineNumbers.IsChecked;
-        foreach (TabItem tab in EditorTabs.Items)
-        {
-            if (tab.Content is TextEditor editor)
-                editor.ShowLineNumbers = _showLineNumbers;
-        }
+        if (_singleEditor != null)
+            _singleEditor.ShowLineNumbers = _showLineNumbers;
     }
 
     private void SetLanguage_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem { Tag: string lang })
+        if (sender is MenuItem { Tag: string lang } && _singleEditor != null && _currentDoc != null)
         {
-            if (EditorTabs.SelectedItem is TabItem { Content: TextEditor editor, Tag: NoteDocument doc })
-            {
-                doc.SyntaxLanguage = lang;
-                ApplySyntaxHighlighting(editor, lang);
-                UpdateLanguageCombo(lang);
-                StatusLanguage.Text = lang == "Plain" ? "Plain Text" : lang;
-            }
+            _currentDoc.SyntaxLanguage = lang;
+            ApplySyntaxHighlighting(_singleEditor, lang);
+            UpdateLanguageCombo(lang);
+            StatusLanguage.Text = lang == "Plain" ? "Plain Text" : lang;
         }
     }
 
@@ -795,24 +746,24 @@ public partial class MainWindow : Window
 
     private void ApplyFontSize()
     {
-        foreach (TabItem tab in EditorTabs.Items)
-        {
-            if (tab.Content is TextEditor editor)
-                editor.FontSize = _fontSize;
-        }
+        if (_singleEditor != null)
+            _singleEditor.FontSize = _fontSize;
     }
 
     private void FontSizeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsLoaded) return;
-        if (FontSizeCombo.SelectedItem is ComboBoxItem { Content: string sizeStr } &&
-            double.TryParse(sizeStr, out var size))
+        double size = 0;
+        if (FontSizeCombo.SelectedItem is ComboBoxItem item)
+            double.TryParse(item.Content?.ToString(), out size);
+        else
+            double.TryParse(FontSizeCombo.Text, out size);
+        if (size > 0)
         {
             _fontSize = size;
             ApplyFontSize();
         }
     }
-
     // ── Help Menu ─────────────────────────────────────
 
     private void About_Click(object sender, RoutedEventArgs e)
@@ -832,26 +783,15 @@ public partial class MainWindow : Window
         Foreground = (System.Windows.Media.Brush)FindResource("ForegroundBrush");
 
         // Update all open editors
-        foreach (TabItem tab in EditorTabs.Items)
+        // The original code iterated through EditorTabs.Items, which is no longer applicable for a single editor.
+        // We only need to update the single editor if it exists.
+        if (_singleEditor != null)
         {
-            if (tab.Content is TextEditor editor)
-            {
-                editor.Background = (System.Windows.Media.Brush)FindResource("EditorBgBrush");
-                editor.Foreground = (System.Windows.Media.Brush)FindResource("ForegroundBrush");
-                editor.LineNumbersForeground = (System.Windows.Media.Brush)FindResource("ForegroundDimBrush");
-                editor.TextArea.SelectionBrush = (System.Windows.Media.Brush)FindResource("SelectionBrush");
-                editor.TextArea.SelectionForeground = null;
-            }
-
-            // Update tab header foreground
-            if (tab.Header is StackPanel sp)
-            {
-                foreach (var child in sp.Children)
-                {
-                    if (child is TextBlock tb)
-                        tb.Foreground = (System.Windows.Media.Brush)FindResource("ForegroundBrush");
-                }
-            }
+            _singleEditor.Background = (System.Windows.Media.Brush)FindResource("EditorBgBrush");
+            _singleEditor.Foreground = (System.Windows.Media.Brush)FindResource("ForegroundBrush");
+            _singleEditor.LineNumbersForeground = (System.Windows.Media.Brush)FindResource("ForegroundDimBrush");
+            _singleEditor.TextArea.SelectionBrush = (System.Windows.Media.Brush)FindResource("SelectionBrush");
+            _singleEditor.TextArea.SelectionForeground = null;
         }
 
         // Toggle icon
@@ -940,8 +880,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
-        _autoSaveTimer.Stop();
-        SaveAllDocuments(silent: true);
+        SaveCurrentDocument();
         base.OnClosing(e);
     }
 }

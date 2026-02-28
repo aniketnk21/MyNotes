@@ -235,7 +235,7 @@
                 <!-- Tree View -->
                 <TreeView x:Name="NoteTree" Padding="4"
                           SelectedItemChanged="NoteTree_SelectedItemChanged"
-                          MouseDoubleClick="NoteTree_MouseDoubleClick">
+                          MouseLeftButtonUp="NoteTree_MouseLeftButtonUp">
                     <TreeView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="New Category" Click="NewCategory_Click"/>
@@ -248,16 +248,29 @@
             <!-- Grid Splitter -->
             <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" Background="#3F3F46" />
 
-            <!-- Right Panel: Tabbed Editor -->
-            <DockPanel Grid.Column="2">
-                <!-- Tab Control -->
-                <TabControl x:Name="EditorTabs" DockPanel.Dock="Top"
-                            SelectionChanged="EditorTabs_SelectionChanged">
-                    <!-- Tabs are added programmatically -->
-                </TabControl>
+            <!-- Right Panel: Single Editor -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                <!-- Welcome screen shown when no tabs open -->
-                <Border x:Name="WelcomePanel" Background="{DynamicResource PrimaryBgBrush}" Visibility="Visible">
+                <!-- Editor Title Bar -->
+                <Border x:Name="EditorTitleBar" Grid.Row="0"
+                        Background="{DynamicResource TertiaryBgBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
+                        Padding="12,6" Visibility="Collapsed">
+                    <TextBlock x:Name="EditorTitleText"
+                               Foreground="{DynamicResource ForegroundBrush}"
+                               FontSize="13" FontWeight="SemiBold"
+                               VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Editor Host -->
+                <ContentControl x:Name="EditorHost" Grid.Row="1"/>
+
+                <!-- Welcome screen shown when no note is open -->
+                <Border x:Name="WelcomePanel" Grid.Row="1" Background="{DynamicResource PrimaryBgBrush}" Visibility="Visible">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                         <TextBlock Text="MyNotes" FontSize="42" FontWeight="Light" 
                                    Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center"
@@ -266,6 +279,10 @@
                                    Foreground="{DynamicResource ForegroundDimBrush}" HorizontalAlignment="Center"
                                    Margin="0,0,0,30"/>
                         <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Foreground="{DynamicResource ForegroundDimBrush}" HorizontalAlignment="Center" Margin="0,4">
+                                <Run Text="Click a note" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}"/>
+                                <Run Text="  to open it"/>
+                            </TextBlock>
                             <TextBlock Foreground="{DynamicResource ForegroundDimBrush}" HorizontalAlignment="Center" Margin="0,4">
                                 <Run Text="Ctrl+N" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}"/>
                                 <Run Text="  New Note"/>
@@ -278,14 +295,10 @@
                                 <Run Text="Ctrl+F" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}"/>
                                 <Run Text="  Find &amp; Replace"/>
                             </TextBlock>
-                            <TextBlock Foreground="{DynamicResource ForegroundDimBrush}" HorizontalAlignment="Center" Margin="0,4">
-                                <Run Text="Ctrl+W" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}"/>
-                                <Run Text="  Close Tab"/>
-                            </TextBlock>
                         </StackPanel>
                     </StackPanel>
                 </Border>
-            </DockPanel>
+            </Grid>
         </Grid>
     </DockPanel>
 </Window>
