@@ -2,7 +2,7 @@
 ; ====================================
 
 #define MyAppName "MyNotes"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "2.0.0"
 #define MyAppPublisher "MyNotes"
 #define MyAppExeName "MyNotes.Desktop.exe"
 #define MyAppURL "https://github.com/mynotes"

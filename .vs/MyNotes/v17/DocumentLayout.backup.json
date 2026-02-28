@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|d:\\projects\\mobileclothstore\\cfm\\mynotes\\mynotes.desktop\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|solutionrelative:mynotes.desktop\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|d:\\projects\\mobileclothstore\\cfm\\mynotes\\mynotes.desktop\\models\\notedocument.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E2239490-17F3-492C-B90E-5791F99FB14F}|MyNotes.Desktop\\MyNotes.Desktop.csproj|solutionrelative:mynotes.desktop\\models\\notedocument.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -35,6 +39,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "MyNotes.Desktop\\MainWindow.xaml.cs",
+              "ToolTip": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\MainWindow.xaml.cs",
+              "RelativeToolTip": "MyNotes.Desktop\\MainWindow.xaml.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAAAQwDQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-28T09:33:43.463Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "NoteDocument.cs",
               "DocumentMoniker": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Models\\NoteDocument.cs",
               "RelativeDocumentMoniker": "MyNotes.Desktop\\Models\\NoteDocument.cs",
@@ -42,12 +59,11 @@
               "RelativeToolTip": "MyNotes.Desktop\\Models\\NoteDocument.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-14T04:33:55.347Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-14T04:33:55.347Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "NoteCategory.cs",
               "DocumentMoniker": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Models\\NoteCategory.cs",
               "RelativeDocumentMoniker": "MyNotes.Desktop\\Models\\NoteCategory.cs",
@@ -59,7 +75,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "ThemeManager.cs",
               "DocumentMoniker": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Services\\ThemeManager.cs",
               "RelativeDocumentMoniker": "MyNotes.Desktop\\Services\\ThemeManager.cs",
@@ -71,7 +87,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "DatabaseService.cs",
               "DocumentMoniker": "D:\\Projects\\MobileClothStore\\CFM\\MyNotes\\MyNotes.Desktop\\Services\\DatabaseService.cs",
               "RelativeDocumentMoniker": "MyNotes.Desktop\\Services\\DatabaseService.cs",
